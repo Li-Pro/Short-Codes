@@ -28,6 +28,7 @@ def getRandBits(k):
 
 #------------------------------------------------
 
+
 import math
 
 # Note:
@@ -38,9 +39,14 @@ import math
 
 _BPUF = 52
 _FSTP = 2**(-_BPUF)
-_FEXPMIN = -1022
 
-def _randUnder(N):
+def rand(N):
+	"""
+	Return an integer with range [0, N).
+	
+	Complexity:
+		O(1) with high probability.
+	"""
 	k = N.bit_length()
 	num = getRandBits(k)
 	while not num < N:
@@ -53,21 +59,11 @@ def randRange(a, b):
 	Return an integer with range [a, b).
 	
 	Complexity:
-		O(1) with high probability.
+		O(1)
 	"""
 	length = b - a
-	num = a + _randUnder(length)
+	num = a + rand(length)
 	return num
-
-def rand(N):
-	"""
-	Return an integer with range [0, N).
-	Alias of `randRange(0, N)`.
-	
-	Complexity:
-		= T(randRange)
-	"""
-	return randRange(0, N)
 
 def shuffle(arr):
 	"""
@@ -108,47 +104,24 @@ def sample(seq, k):
 	
 	return arr
 
-def _randDecPart(n=1.0):
-	# only 52-bit fraction
-	for n_bas in range(_BPUF, -1, -1):
-		if 2**(-n_bas) >= n:
-			k = _BPUF - n_bas + 1
-			
-			num = getRandBits(k) * _FSTP
-			while not num < n:
-				num = getRandBits(k) * _FSTP
-			
-			return num
-
-def _randHighPrecisionDecPart(n=1.0):
-	# 52-bit fraction, 11-bit exponent
-	frpart = _randDecPart()
-	for prec in range(0, _FEXPMIN, -1):
-		if getRandBits(prec) == 0:
-			continue
-		
-		return frpart / (2**prec)
-	
-	return frpart / (2**_FEXPMIN)
-
-_randDecim = _randDecPart
-
-def useHighPrecisionFloat(use=True):
-	global _randDecim
-	if use:
-		_randDecim = _randHighPrecisionDecPart
-	
-	else:
-		_randDecim = _randDecPart
-
-def randReal(n):
+def randReal(n=1.0):
 	"""
 	Return a float from [0, n).
 	
 	Complexity:
-		O(1)
+		O(1) with high probability.
 	"""
+	if not n:
+		return 0
 	
+	baseLen = math.ceil(math.log2(n))
+	base = 2**baseLen
+	
+	num = getRandBits(_BPUF) * _FSTP * base
+	while not num < n:
+		num = getRandBits(_BPUF) * _FSTP * base
+	
+	return num
 
 def randRealRange(a, b):
 	"""
@@ -157,9 +130,47 @@ def randRealRange(a, b):
 	Complexity:
 		O(1)
 	"""
-	intNum = randRange(a, b)
-	num = intNum + randReal()
+	length = b-a
+	num = a + randReal(length)
+	
 	return num
+
+def unitChoice(arr, cumWeigt):
+	"""
+	Choose an element from arr.
+	Each element has their specific cumulative weight, which sum to 1.0
+	
+	Complexity:
+		O(logN) where N = len(arr).
+	"""
+	x = randReal()
+	L, R = 0, len(arr)-1
+	while L < R:
+		i = (L + R + 1) // 2
+		if cumWeigt[i] >= x:
+			R = i - 1
+		
+		else:
+			L = i
+	
+	return arr[L]
+
+def choice(arr, weight):
+	"""
+	Choose an element from arr, with their specified weights.
+	
+	Complexity:
+		O(N) where N = len(arr).
+	"""
+	sumWgt = sum(weight)
+	
+	cumWgt, sumNow = [], 0
+	for w in weight:
+		cumWgt.append(sumNow)
+		sumNow += w/sumWgt
+	
+	return unitChoice(arr, cumWgt)
+
 
 #---------------- Testing Part ------------------
 
