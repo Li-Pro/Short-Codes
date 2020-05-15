@@ -1,5 +1,5 @@
 # Short Codes
-Some uncategorized short codes.
+Some uncategorized short codes.  
 Each of them is lightweight, independent and self-contained.
 
 ## License
