@@ -8,9 +8,6 @@ NOT including random generator algorithm (yet(?)).
 
 import random as _librandom
 
-def _randBit():
-	return _librandom.getrandbits(1)
-
 def setSeed(seed=None):
 	"""
 	Set the random seed.
@@ -18,12 +15,16 @@ def setSeed(seed=None):
 	Quote from <random>:
 		None or no argument seeds from current time or from an operating
 		system specific randomness source if available.
-	
-	Complexity:
-		= T(random.seed)
 	"""
 	_librandom.seed(seed)
 	return
+
+def getRandBits(k):
+	"""
+	Return a k-bit integer.
+	This is the basic generator.
+	"""
+	return _librandom.getrandbits(k)
 
 #------------------------------------------------
 
@@ -33,22 +34,11 @@ import math
 #	Analyses assume...
 #	1. that integer operation is O(1).
 #	2. that bit_length() is O(1).
+#	3. that random.getrandbits were close to O(1).
 
 _BPUF = 52
-_UFMIN = 2**(-_BPUF)
-
-def getRandBits(k):
-	"""
-	Return an integer with k random bits.
-	
-	Complexity:
-		O(k)
-	"""
-	bits = 0
-	for i in range(k):
-		bits = (bits << 1) | _randBit()
-	
-	return bits
+_FSTP = 2**(-_BPUF)
+_FEXPMIN = -1022
 
 def _randUnder(N):
 	k = N.bit_length()
@@ -118,22 +108,42 @@ def sample(seq, k):
 	
 	return arr
 
-def _randDecPart():
-	num = 0
-	for i in range(_BPUF):
-		num = num * 2 + (_UFMIN * getRandBits(1))
-	
-	return num
+def _randDecPart(n=1.0):
+	# only 52-bit fraction
+	for n_bas in range(_BPUF, -1, -1):
+		if 2**(-n_bas) >= n:
+			k = _BPUF - n_bas + 1
+			
+			num = getRandBits(k) * _FSTP
+			while not num < n:
+				num = getRandBits(k) * _FSTP
+			
+			return num
 
-def _randDecUnder(n):
-	divBase = math.floor(1 / n)
-	k = divBase.bit_length()
+def _randHighPrecisionDecPart(n=1.0):
+	# 52-bit fraction, 11-bit exponent
+	frpart = _randDecPart()
+	for prec in range(0, _FEXPMIN, -1):
+		if getRandBits(prec) == 0:
+			continue
+		
+		return frpart / (2**prec)
 	
-	return
+	return frpart / (2**_FEXPMIN)
 
-def randReal():
+_randDecim = _randDecPart
+
+def useHighPrecisionFloat(use=True):
+	global _randDecim
+	if use:
+		_randDecim = _randHighPrecisionDecPart
+	
+	else:
+		_randDecim = _randDecPart
+
+def randReal(n):
 	"""
-	Return a float from [0, 1).
+	Return a float from [0, n).
 	
 	Complexity:
 		O(1)
