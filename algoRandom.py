@@ -33,9 +33,8 @@ import math
 
 # Note:
 #	Analyses assume...
-#	1. that integer operation is O(1).
-#	2. that bit_length() is O(1).
-#	3. that random.getrandbits were close to O(1).
+#	1. that number operation & functions is O(1).
+#	2. that the maximum bit length is fixed.
 
 _BPUF = 52
 _FSTP = 2**(-_BPUF)
