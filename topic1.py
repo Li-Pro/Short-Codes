@@ -82,7 +82,7 @@ def algoC():
 
 def algoD():
 	space = random.sample(range(1, 999), 4)  # Random 4 space
-	space = sorted([0] + space + [1000])     # Starts from 0, ends at 1000
+	space = [0] + sorted(space) + [1000]     # Starts from 0, ends at 1000
 	
 	v = []
 	for i in range(5):
@@ -92,7 +92,7 @@ def algoD():
 
 def analyze(algoFunc, testCnt):
 	print('---')
-	ana_sttime = time.time()
+	ana_sttime = time.perf_counter()
 	
 	totalSum = 0
 	sumTest = [0 for i in range(5)]
@@ -104,7 +104,7 @@ def analyze(algoFunc, testCnt):
 		for i in range(5):
 			sumTest[i] += result[i]
 	
-	ana_edtime = time.time()
+	ana_edtime = time.perf_counter()
 	print('Tested {} with {:>5} tests in {:.3f} second(s).'.format(algoFunc.__name__, testCnt, ana_edtime - ana_sttime))
 	print('Average earnings: ', end='')
 	for i in range(5):
