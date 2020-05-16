@@ -1,4 +1,4 @@
-# Prologue
+# Prologue [https://www.facebook.com/groups/1403852566495675/permalink/2623398574541062/]
 # Split 1000 randomly into 5 non-zero pieces.
 """
 喔 最近也在寫random
@@ -38,51 +38,82 @@ D. 這是我的作法
 import random
 
 def algoA():
-	w = [random.randint(1, 1000) for i in range(5)]	# Weight
-	sumW = sum(w)									# Weight sum
+	w = [random.randint(1, 1000) for i in range(5)]  # Weight
+	sumW = sum(w)                                    # Weight sum
 	
-	v = [0 for i in range(5)]						# Earning
+	v = [0 for i in range(5)]                        # Earning
 	for i in range(5):
-		v[i] = int(1000 * (w[i] / sumW))			# Scale of (w[i]/sumW)
+		v[i] = int(1000 * (w[i] / sumW))             # Scale of (w[i]/sumW)
 	
-	leftMoney = 1000 - sum(v)
-	# print('[algoA]: Extra money =', leftMoney)
+	leftMoney = 1000 - sum(v)                        # Issue: Unused money.
 	
 	# A way to amend this is...
 	for i in range(leftMoney):
-		j = random.randrange(5)						# Split them randomly (bruh)
+		j = random.randrange(5)                      # Split them randomly (bruh)
 		v[j] += 1
 	
 	return v
 
 def algoB():
-	return [0]*5
+	v = [1 for i in range(5)]
+	
+	totalLeft = 1000 - 5
+	for i in range(4):
+		x = random.randrange(totalLeft)  # Randomly pick a number...
+		
+		v[i] += x
+		totalLeft -= x
+	
+	v[4] += totalLeft
+	totalLeft = 0
+	
+	return v                             # Issue: Uneven probabilities.
 
 def algoC():
-	return [0]*5
+	v = [1 for i in range(5)]
+	
+	totalLeft = 1000 - 5
+	for i in range(totalLeft):   # Tends to be O(totalLeft)
+		j = random.randrange(5)  # Randomly pick a person to give 1 dollar.
+		v[j] += 1
+	
+	return v
 
 def algoD():
-	return [0]*5
+	space = random.sample(range(1, 999), 4)  # Random 4 space
+	space = sorted([0] + space + [1000])     # Starts from 0, ends at 1000
+	
+	v = []
+	for i in range(5):
+		v.append(space[i+1]-space[i])
+	
+	return v
 
 def analyze(algoFunc):
 	print('Testing function: ' + algoFunc.__name__)
 	
 	totalSum = 0
 	sumTest = [0 for i in range(5)]
-	for testId in range(10000):
-		totalSum += 10
+	for testId in range(1000):
+		totalSum += 1000
 		result = algoFunc()
+		assert(sum(result) == 1000)
+		
 		for i in range(5):
-			sumTest[i] += result[i] / 100	# Convert it back to unit money
+			sumTest[i] += result[i]
 	
-	averageTest = [x/totalSum for x in sumTest]
-	print('Average earnings: ', averageTest)
-	print()
+	print('Average earnings: ', end='')
+	for i in range(5):
+		print('{:.2f}'.format(10 * (sumTest[i]/totalSum)), end=', ')
 	
+	print('\n')
 	return
 
+def _test():
+	analyze(algoA)  # Correct, but has some solvable issue.
+	analyze(algoB)  # Incorrect
+	analyze(algoC)  # Correct but slow (it runs in seconds).
+	analyze(algoD)  # Correct and fast!
+
 if __name__ == "__main__":
-	analyze(algoA)
-	analyze(algoB)
-	analyze(algoC)
-	analyze(algoD)
+	_test()
