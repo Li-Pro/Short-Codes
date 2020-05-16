@@ -36,6 +36,7 @@ D. 這是我的作法
 """
 
 import random
+import time
 
 def algoA():
 	w = [random.randint(1, 1000) for i in range(5)]  # Weight
@@ -89,12 +90,13 @@ def algoD():
 	
 	return v
 
-def analyze(algoFunc):
-	print('Testing function: ' + algoFunc.__name__)
+def analyze(algoFunc, testCnt):
+	print('---')
+	ana_sttime = time.time()
 	
 	totalSum = 0
 	sumTest = [0 for i in range(5)]
-	for testId in range(1000):
+	for testId in range(testCnt):
 		totalSum += 1000
 		result = algoFunc()
 		assert(sum(result) == 1000)
@@ -102,18 +104,22 @@ def analyze(algoFunc):
 		for i in range(5):
 			sumTest[i] += result[i]
 	
+	ana_edtime = time.time()
+	print('Tested {} with {:>5} tests in {:.3f} second(s).'.format(algoFunc.__name__, testCnt, ana_edtime - ana_sttime))
 	print('Average earnings: ', end='')
 	for i in range(5):
 		print('{:.2f}'.format(10 * (sumTest[i]/totalSum)), end=', ')
 	
-	print('\n')
+	print()
+	
+	print()
 	return
 
 def _test():
-	analyze(algoA)  # Correct, but has some solvable issue.
-	analyze(algoB)  # Incorrect
-	analyze(algoC)  # Correct but slow (it runs in seconds).
-	analyze(algoD)  # Correct and fast!
+	analyze(algoA, 10000)  # Correct, but has some solvable issue.
+	analyze(algoB, 10000)  # Incorrect
+	analyze(algoC,   700)  # Correct but slow (it runs in seconds).
+	analyze(algoD, 10000)  # Correct and fast!
 
 if __name__ == "__main__":
 	_test()
