@@ -1,5 +1,6 @@
 import tkinter as tk
 import math
+import time
 
 #------------------------ Game Objects ------------------------------
 
@@ -23,6 +24,8 @@ class Player(GameObject):
 		
 		self.lastVX = self.speed
 		self.lastVY = 0
+		
+		self.lastShootTime = time.time()
 	
 	def initDraw(self):
 		canvas = self.theGame.canvas
@@ -49,31 +52,32 @@ class Player(GameObject):
 		canvas.move(self.playerId, vx, vy)
 
 class Bullet(GameObject):
-	speedMod = 5
+	speed = 50
 	def __init__(self, game, player):
 		super().__init__(game)
 		
 		self.posX = player.posX
 		self.posY = player.posY
 		
-		self.vX = player.lastVX * self.speedMod
-		self.vY = player.lastVY * self.speedMod
+		vX = player.lastVX
+		vY = player.lastVY
+		
+		unitSpeed = math.sqrt(vX*vX + vY*vY)
+		modUnit = self.speed / unitSpeed
+		self.vX = vX * modUnit
+		self.vY = vY * modUnit
 	
 	def initDraw(self):
 		canvas = self.theGame.canvas
 		posX, posY = self.posX, self.posY
-		vX, vY = self.vX, self.vY
 		
-		boundV = (vX/5, vY/5)
-		boundPV = (-boundV[1]/3, boundV[0]/3)
-		
-		bound1 = (posX - boundPV[0]/2, posY - boundPV[1]/2)
-		bound2 = (posX + boundV[0] + boundPV[0]/2, posY + boundV[1] + boundPV[1]/2)
-		
-		self.objId = canvas.create_oval(bound1[0], bound1[1], bound2[0], bound2[1], fill='#b7ff30')
+		self.objId = canvas.create_line(posX, posY, posX+self.vX, posY+self.vY, fill='#b7ff30')
 	
 	def update(self):
 		canvas = self.theGame.canvas
+		self.posX += self.vX
+		self.posY += self.vY
+		
 		canvas.move(self.objId, self.vX, self.vY)
 
 #--------------------------------------------------------------------
@@ -103,7 +107,6 @@ class Game:
 		self.root.bind('<KeyRelease>', self.onKeyReleased)
 	
 	def onKeyPressed(self, event):
-		# print('#', dir(event), ord(event.char))
 		key = event.char.lower()
 		self.keyTyped.add(key)
 		
@@ -114,6 +117,7 @@ class Game:
 	def onUpdate(self):
 		# player move
 		player = self.player
+		now = time.time()
 		
 		vx, vy = 0, 0
 		for key in self.keyTyped:
@@ -128,7 +132,9 @@ class Game:
 				vx += 5
 			
 			if key == ' ':
-				self.addObj(Bullet(self, player))
+				if now - player.lastShootTime >= 0.1:
+					self.addObj(Bullet(self, player))
+					player.lastShootTime = now
 		
 		self.player.move(vx, vy)
 		
