@@ -64,15 +64,11 @@ class Bullet(GameObject):
 		posX, posY = self.posX, self.posY
 		vX, vY = self.vX, self.vY
 		
-		bound1 = [posX, posY]
-		bound2 = [posX + vX/5, posY + vY/5]
-		for i in range(2):
-			if bound1[i] < bound2[i]:
-				bound1[i] -= 1
-				bound2[i] += 1
-			else:
-				bound1[i] += 1
-				bound2[i] -= 1
+		boundV = (vX/5, vY/5)
+		boundPV = (-boundV[1]/3, boundV[0]/3)
+		
+		bound1 = (posX - boundPV[0]/2, posY - boundPV[1]/2)
+		bound2 = (posX + boundV[0] + boundPV[0]/2, posY + boundV[1] + boundPV[1]/2)
 		
 		self.objId = canvas.create_oval(bound1[0], bound1[1], bound2[0], bound2[1], fill='#b7ff30')
 	
