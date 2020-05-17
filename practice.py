@@ -1,5 +1,6 @@
-import tkinter as tk
 import math
+import random
+import tkinter as tk
 import time
 
 def _hexRGB(r, g, b):
@@ -65,8 +66,7 @@ class Player(GameObject):
 		if now - self.lastShootTime >= 0.1:
 			game = self.theGame
 			game.addObj(Bullet(game, self))
-			game.addObj(ShootFX(game, self))
-			
+			game.addObj(ChasingRect(game, self))
 			self.lastShootTime = now
 
 class Bullet(GameObject):
@@ -102,39 +102,66 @@ class Bullet(GameObject):
 		self.posX += self.vX
 		self.posY += self.vY
 		
-		canvas.move(self.objId, self.vX, self.vY)
+		posX, posY = self.posX, self.posY
+		canvas.coords(self.objId, posX, posY, posX+self.vX, posY+self.vY)
+		# canvas.move(self.objId, self.vX, self.vY)
 
-class ShootFX(GameObject):
+class ChasingRect(GameObject):
 	def __init__(self, game, player):
-		super().__init__(game)
+		self.thePlayer = player
+		self.theGame = game
 		
-		self.posX = player.posX
-		self.posY = player.posY
+		radius = 300
+		deg = random.uniform(0, 2*math.pi)
+		relatX = radius * math.cos(deg)
+		relatY = radius * math.sin(deg)
 		
-		self.CD = 1
+		self.posX = player.posX + relatX
+		self.posY = player.posY + relatY
+		
+		self.speed = 7
 	
 	def initDraw(self):
 		canvas = self.theGame.canvas
 		posX, posY = self.posX, self.posY
-		
-		self.objIds = []
-		for sz in range(20, 1110, 45):
-			st, ed = 68, 0
-			at = 45 - (1110-sz)//45
-			now = int(st + (ed-st) * (at/45))
-			# print('#', st, ed, at, now, _fRGB(now, now, now))
-			
-			nobj = canvas.create_oval(posX-sz, posY-sz, posX+sz, posY+sz, fill=_fRGB(now, now, now), outline='')
-			canvas.tag_lower(nobj)
-			self.objIds.append(nobj)
+		self.objId = canvas.create_rectangle(posX-8, posY-8, posX+8, posY+8, fill='#0026ff')
 	
 	def update(self):
-		if not self.CD:
-			self.theGame.removeObj(self)
-			for Id in self.objIds:
-				self.theGame.canvas.delete(Id)
-		else:
-			self.CD -= 1
+		game = self.theGame
+		canvas = game.canvas
+		for obj in game.objects:
+			if isinstance(obj, Bullet):
+				vX = obj.posX - self.posX
+				vY = obj.posY - self.posY
+				dist = math.sqrt(vX*vX + vY*vY)
+				# print('#', obj, vX, vY, dist)
+				
+				if dist < 30:
+					game.removeObj(self)
+					canvas.delete(self.objId)
+					return
+		
+		player = self.thePlayer
+		
+		vX = player.posX - self.posX
+		vY = player.posY - self.posY
+		unitSpeed = math.sqrt(vX*vX + vY*vY)
+		# print('##', unitSpeed)
+		
+		if unitSpeed < 12:
+			self.theGame.onChased()
+			return
+		
+		modUnit = self.speed / unitSpeed
+		vX *= modUnit
+		vY *= modUnit
+		# print('#', vX*vX + vY*vY)
+		
+		self.posX += vX
+		self.posY += vY
+		canvas.move(self.objId, vX, vY)
+		
+		return True
 
 #--------------------------------------------------------------------
 
@@ -166,7 +193,7 @@ class Game:
 		self.keyTyped = set()
 		self.root.bind('<KeyPress>', self.onKeyPressed)
 		self.root.bind('<KeyRelease>', self.onKeyReleased)
-		self.root.bind('<Escape>', self.onExit)
+		self.root.bind('<Escape>', self.onEscape)
 	
 	def onKeyPressed(self, event):
 		key = event.char.lower()
@@ -215,8 +242,16 @@ class Game:
 	def isValidPos(self, posX, posY):
 		return (posX >= 5 and posX < self.WIDTH-5) and (posY >= 5 and posY < self.HEIGHT-5)
 	
-	def onExit(self, event):
+	def onEscape(self, event):
+		self.onExit()
+	
+	def onChased(self):
+		print('Ooooooh')
+		self.onExit()
+	
+	def onExit(self):
 		self.root.destroy()
+		exit()
 	
 	def render():
 		return
