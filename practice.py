@@ -2,6 +2,12 @@ import tkinter as tk
 import math
 import time
 
+def _hexRGB(r, g, b):
+	return '{:02x}{:02x}{:02x}'.format(r, g, b)
+
+def _fRGB(r, g, b):
+	return '#' + _hexRGB(r, g, b)
+
 #------------------------ Game Objects ------------------------------
 
 class GameObject:
@@ -59,6 +65,8 @@ class Player(GameObject):
 		if now - self.lastShootTime >= 0.1:
 			game = self.theGame
 			game.addObj(Bullet(game, self))
+			game.addObj(ShootFX(game, self))
+			
 			self.lastShootTime = now
 
 class Bullet(GameObject):
@@ -96,15 +104,51 @@ class Bullet(GameObject):
 		
 		canvas.move(self.objId, self.vX, self.vY)
 
+class ShootFX(GameObject):
+	def __init__(self, game, player):
+		super().__init__(game)
+		
+		self.posX = player.posX
+		self.posY = player.posY
+		
+		self.CD = 1
+	
+	def initDraw(self):
+		canvas = self.theGame.canvas
+		posX, posY = self.posX, self.posY
+		
+		self.objIds = []
+		for sz in range(20, 1110, 45):
+			st, ed = 68, 0
+			at = 45 - (1110-sz)//45
+			now = int(st + (ed-st) * (at/45))
+			# print('#', st, ed, at, now, _fRGB(now, now, now))
+			
+			nobj = canvas.create_oval(posX-sz, posY-sz, posX+sz, posY+sz, fill=_fRGB(now, now, now), outline='')
+			canvas.tag_lower(nobj)
+			self.objIds.append(nobj)
+	
+	def update(self):
+		if not self.CD:
+			self.theGame.removeObj(self)
+			for Id in self.objIds:
+				self.theGame.canvas.delete(Id)
+		else:
+			self.CD -= 1
+
 #--------------------------------------------------------------------
 
 
 class Game:
-	WIDTH, HEIGHT = 800, 600
+	# WIDTH, HEIGHT = 800, 600
 	def __init__(self, root):
+		root.grid_rowconfigure(0, weight=1)
+		root.grid_columnconfigure(0, weight=1)
 		self.root = root
 		
-		canvas = tk.Canvas(root, width=Game.WIDTH, height=Game.HEIGHT, background='#000000')
+		self.WIDTH, self.HEIGHT = root.winfo_screenwidth(), root.winfo_screenheight()
+		
+		canvas = tk.Canvas(root, width=self.WIDTH, height=self.HEIGHT, background='#000000')
 		self.canvas = canvas
 		self.player = Player(self)
 		self.objects = []
@@ -114,7 +158,8 @@ class Game:
 		self.root.after(20, self.onUpdate)
 	
 	def initDraw(self):
-		self.canvas.pack()
+		# self.canvas.pack()
+		self.canvas.grid(sticky='NSEW')
 		self.player.initDraw()
 	
 	def initControl(self):
@@ -179,6 +224,7 @@ class Game:
 def main():
 	root = tk.Tk()
 	root.title(__file__)
+	root.state('zoomed')
 	
 	game = Game(root)
 	root.mainloop()
