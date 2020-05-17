@@ -1,3 +1,11 @@
+"""
+A Simple Game.
+Control: <Space> + WASD
+Beat this game: make your self the top 0.0%
+"""
+
+# Tkinter + Canvas practice
+
 import math
 import random
 import tkinter as tk
@@ -134,9 +142,9 @@ class ChasingRect(GameObject):
 				vX = obj.posX - self.posX
 				vY = obj.posY - self.posY
 				dist = math.sqrt(vX*vX + vY*vY)
-				# print('#', obj, vX, vY, dist)
 				
 				if dist < 30:
+					game.addScore(50)
 					game.removeObj(self)
 					canvas.delete(self.objId)
 					return
@@ -146,7 +154,6 @@ class ChasingRect(GameObject):
 		vX = player.posX - self.posX
 		vY = player.posY - self.posY
 		unitSpeed = math.sqrt(vX*vX + vY*vY)
-		# print('##', unitSpeed)
 		
 		if unitSpeed < 12:
 			self.theGame.onChased()
@@ -155,7 +162,6 @@ class ChasingRect(GameObject):
 		modUnit = self.speed / unitSpeed
 		vX *= modUnit
 		vY *= modUnit
-		# print('#', vX*vX + vY*vY)
 		
 		self.posX += vX
 		self.posY += vY
@@ -183,6 +189,8 @@ class Game:
 		self.initDraw()
 		self.initControl()
 		self.root.after(20, self.onUpdate)
+		
+		self.score = 0
 	
 	def initDraw(self):
 		# self.canvas.pack()
@@ -251,7 +259,18 @@ class Game:
 	
 	def onExit(self):
 		self.root.destroy()
+		score = self.score
+		if self.score:
+			lgscore = math.ceil(math.log2(self.score / 50))
+			pcnt = (10/9) * (10**(-lgscore))
+		else:
+			pcnt = 100.0
+		print('Your score: ', self.score)
+		print('Only {:.12f}% can do this.'.format(pcnt))
 		exit()
+	
+	def addScore(self, score):
+		self.score += score
 	
 	def render():
 		return
