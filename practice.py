@@ -42,14 +42,24 @@ class Player(GameObject):
 		vx *= modUnit
 		vy *= modUnit
 		
+		newPosX, newPosY = self.posX + vx, self.posY + vy
+		if not self.theGame.isValidPos(newPosX, newPosY):
+			return
+		
 		self.lastVX = vx
 		self.lastVY = vy
 		
-		self.posX += vx
-		self.posY += vy
+		self.posX = newPosX
+		self.posY = newPosY
 		
 		canvas = self.theGame.canvas
 		canvas.move(self.playerId, vx, vy)
+	
+	def shoot(self, now):
+		if now - self.lastShootTime >= 0.1:
+			game = self.theGame
+			game.addObj(Bullet(game, self))
+			self.lastShootTime = now
 
 class Bullet(GameObject):
 	speed = 50
@@ -72,13 +82,23 @@ class Bullet(GameObject):
 		posX, posY = self.posX, self.posY
 		
 		self.objId = canvas.create_line(posX, posY, posX+self.vX, posY+self.vY, fill='#b7ff30')
+		# self.fx3 = canvas.create_oval(posX-15, posY-15, posX+15, posY+15, fill='#050505', outline='')
+		# # canvas.scale(self.fx3, posX, posY, self.vX+1, self.vY+1)
+		# self.fx2 = canvas.create_oval(posX-12, posY-12, posX+12, posY+12, fill='#080808', outline='')
+		# self.fx1 = canvas.create_oval(posX- 9, posY- 9, posX+ 9, posY+ 9, fill='#111111', outline='')
 	
 	def update(self):
+		game = self.theGame
+		if not game.isValidPos(self.posX, self.posY):
+			game.removeObj(self)
+			return
+		
 		canvas = self.theGame.canvas
 		self.posX += self.vX
 		self.posY += self.vY
 		
 		canvas.move(self.objId, self.vX, self.vY)
+		# print('# Updating')
 
 #--------------------------------------------------------------------
 
@@ -105,6 +125,7 @@ class Game:
 		self.keyTyped = set()
 		self.root.bind('<KeyPress>', self.onKeyPressed)
 		self.root.bind('<KeyRelease>', self.onKeyReleased)
+		self.root.bind('<Escape>', self.onExit)
 	
 	def onKeyPressed(self, event):
 		key = event.char.lower()
@@ -115,6 +136,10 @@ class Game:
 		self.keyTyped.discard(key)
 	
 	def onUpdate(self):
+		# objects update
+		for obj in self.objects:
+			obj.update()
+		
 		# player move
 		player = self.player
 		now = time.time()
@@ -132,21 +157,25 @@ class Game:
 				vx += 5
 			
 			if key == ' ':
-				if now - player.lastShootTime >= 0.1:
-					self.addObj(Bullet(self, player))
-					player.lastShootTime = now
+				player.shoot(now)
 		
-		self.player.move(vx, vy)
-		
-		# objects update
-		for obj in self.objects:
-			obj.update()
+		player.move(vx, vy)
+		self.canvas.tag_raise(player.playerId)
 		
 		self.root.after(20, self.onUpdate)
 	
 	def addObj(self, obj):
 		self.objects.append(obj)
 		obj.initDraw()
+	
+	def removeObj(self, obj):
+		self.objects.remove(obj)
+	
+	def isValidPos(self, posX, posY):
+		return (posX >= 0 and posX < self.WIDTH) and (posY >= 0 and posY < self.HEIGHT)
+	
+	def onExit(self, event):
+		self.root.destroy()
 	
 	def render():
 		return
