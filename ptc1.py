@@ -4,6 +4,10 @@ Control: <Space> + WASD
 Beat this game: make your self the top 0.0%
 """
 
+## TODO: 
+## 1. replace move() into coords()
+## 2. features: level / better collision check
+
 # Tkinter + Canvas practice
 
 import math
@@ -112,7 +116,6 @@ class Bullet(GameObject):
 		
 		posX, posY = self.posX, self.posY
 		canvas.coords(self.objId, posX, posY, posX+self.vX, posY+self.vY)
-		# canvas.move(self.objId, self.vX, self.vY)
 
 class ChasingRect(GameObject):
 	def __init__(self, game, player):
@@ -173,7 +176,6 @@ class ChasingRect(GameObject):
 
 
 class Game:
-	# WIDTH, HEIGHT = 800, 600
 	def __init__(self, root):
 		root.grid_rowconfigure(0, weight=1)
 		root.grid_columnconfigure(0, weight=1)
@@ -193,7 +195,6 @@ class Game:
 		self.score = 0
 	
 	def initDraw(self):
-		# self.canvas.pack()
 		self.canvas.grid(sticky='NSEW')
 		self.player.initDraw()
 	
