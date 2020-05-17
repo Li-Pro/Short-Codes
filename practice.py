@@ -81,16 +81,13 @@ class Bullet(GameObject):
 		canvas = self.theGame.canvas
 		posX, posY = self.posX, self.posY
 		
-		self.objId = canvas.create_line(posX, posY, posX+self.vX, posY+self.vY, fill='#b7ff30')
-		# self.fx3 = canvas.create_oval(posX-15, posY-15, posX+15, posY+15, fill='#050505', outline='')
-		# # canvas.scale(self.fx3, posX, posY, self.vX+1, self.vY+1)
-		# self.fx2 = canvas.create_oval(posX-12, posY-12, posX+12, posY+12, fill='#080808', outline='')
-		# self.fx1 = canvas.create_oval(posX- 9, posY- 9, posX+ 9, posY+ 9, fill='#111111', outline='')
+		self.objId = canvas.create_line(posX, posY, posX+self.vX, posY+self.vY, fill='#b7ff30', width=8.0)
 	
 	def update(self):
 		game = self.theGame
 		if not game.isValidPos(self.posX, self.posY):
 			game.removeObj(self)
+			game.canvas.delete(self.objId)
 			return
 		
 		canvas = self.theGame.canvas
@@ -98,7 +95,6 @@ class Bullet(GameObject):
 		self.posY += self.vY
 		
 		canvas.move(self.objId, self.vX, self.vY)
-		# print('# Updating')
 
 #--------------------------------------------------------------------
 
@@ -172,7 +168,7 @@ class Game:
 		self.objects.remove(obj)
 	
 	def isValidPos(self, posX, posY):
-		return (posX >= 0 and posX < self.WIDTH) and (posY >= 0 and posY < self.HEIGHT)
+		return (posX >= 5 and posX < self.WIDTH-5) and (posY >= 5 and posY < self.HEIGHT-5)
 	
 	def onExit(self, event):
 		self.root.destroy()
