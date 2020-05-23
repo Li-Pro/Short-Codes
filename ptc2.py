@@ -1,3 +1,4 @@
+import argparse
 import random
 import tkinter as tk
 import tkinter.font as tkfont
@@ -23,11 +24,11 @@ def startGame(dats, i, j):
 	global _gameStarted
 	
 	_gameStarted = True
-	N, M, buttons, data = dats
+	N, M, BCNT, buttons, data = dats
 	
-	bombs = set(random.sample(range(0, N*M), (N*M) // 5))
+	bombs = set(random.sample(range(0, N*M), BCNT))
 	while (i*M + j) in bombs:
-		bombs = set(random.sample(range(0, N*M), (N*M) // 5))
+		bombs = set(random.sample(range(0, N*M), BCNT))
 	
 	for i in range(N):
 		for j in range(M):
@@ -41,61 +42,76 @@ def dfs(i, j, N, M, data, connects):
 	
 	if sumAround(i, j, N, M, data) == 0:
 		for x, y in adjacent(i, j, N, M, diag=True):
-			# print('##', x, y)
 			if data[x][y] == 0:
 				dfs(x, y, N, M, data, connects)
 
 def updateGrid(dats, i, j):
-	N, M, buttons, data = dats
-	print(data[i][j])
+	N, M, BCNT, buttons, data = dats
 	if data[i][j] == 1:
 		for i in range(N):
 			for j in range(M):
 				if data[i][j] == 1:
-					buttons[i][j].configure(background='#ff0000', text='*')
-					buttons[i][j].configure(state='disabled')
+					buttons[i][j].configure(background='#ff0000', text=' ')
+				
+				buttons[i][j].configure(state='disabled')
 	else:
 		blockConnect = []
 		dfs(i, j, N, M, data, blockConnect)
-		print('#', blockConnect)
 		for x, y in blockConnect:
 			btn = buttons[x][y]
-			# print(btn.keys())
-			# print(btn['font'])
 			
 			sumadj = sumAround(x, y, N, M, data)
 			sumtxt = str(sumadj) if sumadj else ''
 			
 			btn.configure(background='#ffffff', text=sumtxt)
 			btn.configure(state='disabled')
-	
+		
+		if all(all(data[i][j] != 0 for j in range(M)) for i in range(N)):
+			for i in range(N):
+				for j in range(M):
+					if data[i][j] == 1:
+						buttons[i][j].configure(background='#00ff00', text=' ')
+					
+					buttons[i][j].configure(state='disabled')
+		
 	return
 
 def onBtnPressed(event, i, j, dats):
 	global _gameStarted
 	
-	N, M, buttons, data = dats
+	N, M, BCNT, buttons, data = dats
 	
 	if not _gameStarted:
 		startGame(dats, i, j)
 	
-	# print('#', buttons)
 	btn = buttons[i][j]
 	if btn['state'] == 'disabled':
 		return
 	
-	print('Pressed: ', i, j)
-	# help(btn.getvar)
-	# print(btn['state'])
-	# print(*(x for x in dir(btn) if 'config' in x))
-	
 	updateGrid(dats, i, j)
 
+def parseArgs():
+	parser = argparse.ArgumentParser(description='A minesweeper game.')
+	parser.add_argument('-s', '--size', type=int, nargs=2, default=(10, 20),
+						metavar=('N', 'M'), help='Set the area size.')
+	
+	parser.add_argument('-c', '--count', type=int, default=30,
+						help='Set the number of mines.')
+	
+	args = parser.parse_args()
+	N, M, BCNT = (*args.size, args.count)
+	N = max(1, N)
+	M = max(1, M)
+	BCNT = max(0, min(BCNT, N*M-1))
+	
+	# print('#', N, M, BCNT)
+	return (N, M, BCNT)
+
 def main():
+	N, M, BCNT = parseArgs()
+	
 	root = tk.Tk()
 	root.wm_attributes('-fullscreen', 'true')
-	
-	N, M = 10, 20
 	
 	for i in range(N):
 		root.grid_rowconfigure(i, weight=1)
@@ -103,10 +119,10 @@ def main():
 	for j in range(M):
 		root.grid_columnconfigure(j, weight=1)
 	
-	btnFont = tkfont.Font(family='Consolas', size=36)
+	btnFont = tkfont.Font(family='Consolas', size=32)
 	buttons = [[] for i in range(N)]
 	data = [[-1]*M for i in range(N)]
-	dats = (N, M, buttons, data)
+	dats = (N, M, BCNT, buttons, data)
 	
 	for i in range(N):
 		for j in range(M):
@@ -114,7 +130,7 @@ def main():
 			buttons[i].append(btn)
 			
 			btn.grid(row=i, column=j, sticky='nsew')
-			btn.configure(font=btnFont, text=' ')
+			btn.configure(font=btnFont, text=' ', background='#e8ed87')
 			
 			mkPress = lambda i, j, dats: (lambda event: onBtnPressed(event, i, j, dats))
 			btn.bind('<Button-1>', mkPress(i, j, dats))
