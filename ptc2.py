@@ -1,9 +1,15 @@
+"""
+A Simple Minesweeper
+Beat this game: make your self the top 0.0%
+"""
+
 import argparse
 import random
 import tkinter as tk
 import tkinter.font as tkfont
 
 _gameStarted = False
+_gameScores = 0
 
 def adjacent(i, j, N, M, diag=False):
 	def valid(i, j):
@@ -54,6 +60,9 @@ def updateGrid(dats, i, j):
 					buttons[i][j].configure(background='#ff0000', text=' ')
 				
 				buttons[i][j].configure(state='disabled')
+		
+		return False
+	
 	else:
 		blockConnect = []
 		dfs(i, j, N, M, data, blockConnect)
@@ -61,7 +70,7 @@ def updateGrid(dats, i, j):
 			btn = buttons[x][y]
 			
 			sumadj = sumAround(x, y, N, M, data)
-			sumtxt = str(sumadj) if sumadj else ''
+			sumtxt = str(sumadj) if sumadj else ' '
 			
 			btn.configure(background='#ffffff', text=sumtxt)
 			btn.configure(state='disabled')
@@ -74,10 +83,10 @@ def updateGrid(dats, i, j):
 					
 					buttons[i][j].configure(state='disabled')
 		
-	return
+		return True
 
 def onBtnPressed(event, i, j, dats):
-	global _gameStarted
+	global _gameStarted, _gameScores
 	
 	N, M, BCNT, buttons, data = dats
 	
@@ -88,7 +97,8 @@ def onBtnPressed(event, i, j, dats):
 	if btn['state'] == 'disabled':
 		return
 	
-	updateGrid(dats, i, j)
+	if updateGrid(dats, i, j):
+		_gameScores += N*M
 
 def parseArgs():
 	parser = argparse.ArgumentParser(description='A minesweeper game.')
@@ -104,13 +114,21 @@ def parseArgs():
 	M = max(1, M)
 	BCNT = max(0, min(BCNT, N*M-1))
 	
-	# print('#', N, M, BCNT)
 	return (N, M, BCNT)
+
+def printScoring():
+	global _gameScores
+	
+	print('You scored: ', _gameScores)
+	print('Only {}% can do this.'.format(10000 // (1+_gameScores)))
+	
+	return
 
 def main():
 	N, M, BCNT = parseArgs()
 	
 	root = tk.Tk()
+	root.state('zoomed')
 	root.wm_attributes('-fullscreen', 'true')
 	
 	for i in range(N):
@@ -137,5 +155,7 @@ def main():
 	
 	root.bind('<Escape>', lambda event: root.destroy())
 	root.mainloop()
+	
+	printScoring()
 
 main()
