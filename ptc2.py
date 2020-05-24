@@ -4,6 +4,7 @@ Beat this game: make your self the top 0.0%
 """
 
 import argparse
+import math
 import random
 import tkinter as tk
 import tkinter.font as tkfont
@@ -119,8 +120,9 @@ def parseArgs():
 def printScoring():
 	global _gameScores
 	
+	_logbase = 1.101382
 	print('You scored: ', _gameScores)
-	print('Only {}% can do this.'.format(10000 // (1+_gameScores)))
+	print('Only {}% can do this.'.format(100 // math.log(_gameScores, _logbase)))
 	
 	return
 
