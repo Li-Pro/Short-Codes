@@ -119,8 +119,9 @@ def parseArgs():
 def printScoring():
 	global _gameScores
 	
+	_logbase = 1.101382
 	print('You scored: ', _gameScores)
-	print('Only {}% can do this.'.format(10000 // (1+_gameScores)))
+	print('Only {}% can do this.'.format(100 // math.log(_gameScores, _logbase)))
 	
 	return
 
