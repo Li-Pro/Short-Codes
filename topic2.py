@@ -1,12 +1,17 @@
 """
-Topic: Analysis of hash collision.
-N = bucket size, M = object count.
+Topic: Analysis of MAX hash collision.
+This is not the analysis of expected collision complexity,
+but the maximum collision occurs in a hash table.
+
+In the analyses:
+	N = bucket size, M = object count.
 """
 
 import math
 import random
 
 def countMax(seq):
+	""" Count the max (not average nor expected sum) collisions. """
 	mxn = 0
 	for x in seq:
 		mxn = max(mxn, seq[x])
@@ -16,7 +21,7 @@ def countMax(seq):
 def countCollid(N, M):
 	cnt = {}
 	for i in range(M):
-		x = random.randrange(0, N)
+		x = random.randrange(N)
 		if not x in cnt:
 			cnt[x] = 0
 		
@@ -24,36 +29,31 @@ def countCollid(N, M):
 	
 	return countMax(cnt)
 
-def test1(bucket=1000):
+def test1(size=1000):
 	""" Fixed N, with M growing. """
-	return [countCollid(bucket, i) for i in range(1, bucket)]
+	return [countCollid(size, i) for i in range(1, size)]
 
-def runSubTest(testfunc, bucket, estf=lambda x: x+3, estlabel='O(N)'):
-	T = testfunc(bucket)
-	sumt, avgt = 0, 0
-	for i in range(1, bucket):
+def test2(size=1000):
+	""" With N growing, and N = M. """
+	return [countCollid(i, i) for i in range(1, size)]
+
+def runSubTest(testfunc, size, estf=lambda x: x+3, estlabel='O(N)'):
+	T = testfunc(size)
+	avgt, estt = 0, 0
+	for i in range(1, size):
 		x = T[i-1]
-		sumt += x
-		avgt += x / estf(i)
+		avgt += x / size
+		estt += x / estf(i) / size
 	
-	print('Result: sum({tfunc}) = {sumt}, sum({tfunc}/{est}) = {avgt}'
-		.format(tfunc=testfunc.__name__, sumt=sumt, avgt=avgt, est=estlabel))
+	print('Result: average({tfunc}) = {avg:.3f}, average({tfunc}/{estname}) = {est:.3f}'
+		.format(tfunc=testfunc.__name__, avg=avgt, est=estt, estname=estlabel))
 
 def runTest():
-	F_NlogN = lambda i: (i+3) * math.log2(i+3)
+	F_NlogN = lambda i: math.log2(i+3) / 2
 	
-	bucket_size = 1000
-	runSubTest(test1, bucket_size, F_NlogN, estlabel='O(NlogN)')
-	
-	# T1 = test1(bucket_size)
-	# st1, st1avg = 0, 0
-	# for i in range(1, bucket_size):
-		# x = T1[i-1]
-		# st1 += x
-		# st1avg += x / (2 * (i+3) * math.log2(i+3))
-	
-	# print('sum(test1) = {}, sum(test1/O(NlogN)) = {}'.format(st1, st1avg))
-
+	size = 1000
+	runSubTest(test1, size, F_NlogN, 'O(logM)')
+	runSubTest(test2, size, F_NlogN, 'O(logM)')
 
 #-------------------------- Testing Part ----------------------------
 import importlib
