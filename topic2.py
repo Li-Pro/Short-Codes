@@ -49,11 +49,13 @@ def runSubTest(testfunc, size, estf=lambda x: x+3, estlabel='O(N)'):
 		.format(tfunc=testfunc.__name__, avg=avgt, est=estt, estname=estlabel))
 
 def runTest():
-	F_NlogN = lambda i: math.log2(i+3) / 2
+	def fNlogN(factor=1.0):
+		assert(0.1 <= factor <= 10.0) # In same order of magnitude (base 10)
+		return (lambda i: math.log2(i+3) * factor)
 	
 	size = 1000
-	runSubTest(test1, size, F_NlogN, 'O(logM)')
-	runSubTest(test2, size, F_NlogN, 'O(logM)')
+	runSubTest(test1, size, fNlogN(0.43), 'O(logM)')
+	runSubTest(test2, size, fNlogN(0.58), 'O(logM)')
 
 #-------------------------- Testing Part ----------------------------
 import importlib
@@ -74,6 +76,10 @@ if __name__ == "__main__":
 
 else:
 	### MODULE IMPORTED ###
+	def runHook(pathspec='Locals.plotGraph'):
+		plotGraph = __import__(pathspec, fromlist=['plotGraph']).plotGraph
+		plotGraph.startPlot()
+	
 	def reload(glob=None):
 		"""
 		Reload this module (at runtime).
@@ -88,10 +94,11 @@ else:
 		importlib.reload(currMod)
 		
 		glob.update({name: getattr(currMod, name) for name in __all__})
-
-	## plotGraph plotting arguments ##
-	pltTest1 = dict(func=lambda i: countCollid(bucket, i), domain=(1, 1000), precision=1)
 	
-	__all__ = ['reload', 'pltTest1']
+	## plotGraph plotting arguments ##
+	pltTest1 = dict(func=lambda i: sum(countCollid(1000, i) for j in range(10)) / 10, domain=(1, 1000), precision=10)
+	pltTest2 = dict(func=lambda i: sum(countCollid(i, i) for j in range(10)) / 10, domain=(1, 1000), precision=10)
+	
+	__all__ = ['reload', 'runHook', 'pltTest1', 'pltTest2']
 
 #--------------------------------------------------------------------
