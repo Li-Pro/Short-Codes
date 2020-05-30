@@ -34,27 +34,45 @@ def runTest():
 	
 	print('sum(test1) = {}, sum(test1/O(NlogN)) = {}'.format(st1, st1avg))
 
+
 #-------------------------- Testing Part ----------------------------
 import importlib
 import sys
 
-def main():
-	"""
-	This only runs simple tests.
-	
-	Use plotGraph (by Li-Pro) to graph the function.
-		plotGraph: https://github.com/Li-Pro/plotGraph.git
-	"""
-	runTest()
-
-def reload():
-	currMod = sys.modules[__name__]
-	importlib.reload()
-
 if __name__ == "__main__":
+	### MODULE RUN ###
+	def main():
+		"""
+		This only runs simple tests.
+		
+		Use plotGraph (by Li-Pro) to graph the function.
+			plotGraph: https://github.com/Li-Pro/plotGraph.git
+		"""
+		runTest()
+
 	main()
+
 else:
+	### MODULE IMPORTED ###
+	def reload(glob=None):
+		"""
+		Reload this module (at runtime).
+			reload(globals())
+			OR
+			reload() if called from the __main__ module.
+		"""
+		if glob == None:
+			glob = vars(sys.modules['__main__'])
+		
+		currMod = sys.modules[__name__]
+		importlib.reload(currMod)
+		
+		# print('hah', {name: getattr(currMod, name) for name in __all__})
+		glob.update({name: getattr(currMod, name) for name in __all__})
+
 	# plotGraph plotting arguments
-	pltTest1 = dict(lambda x: countMax(test1(1000, x)), domain=(1, 1000), precision=1)
+	pltTest1 = dict(func=lambda x: countMax(test1(1000, x)), domain=(1, 1000), precision=1)
+	
+	__all__ = ['reload', 'pltTest1']
 
 #--------------------------------------------------------------------
