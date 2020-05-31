@@ -41,13 +41,24 @@ def runSubTest(testfunc, size, estf=lambda x: x+3, estlabel='O(N)'):
 		.format(tfunc=testfunc.__name__, avg=avgt, est=estt, estname=estlabel))
 
 def runTest():
+	def factorSameOrderOfMagnitude(func):
+		def wrapFunc(factor=1.0):
+			assert(0.1 <= factor <= 10.0) # In same order of magnitude (base 10)
+			return func()
+		
+		return wrapFunc
+	
+	@factorSameOrderOfMagnitude
 	def fNlogN(factor=1.0):
-		assert(0.1 <= factor <= 10.0) # In same order of magnitude (base 10)
 		return (lambda i: math.log2(i+3) * factor)
 	
+	@factorSameOrderOfMagnitude
+	def fN(factor=1.0):
+		return (lambda i: (i+1) * factor)
+	
 	size = 1000
-	runSubTest(test1, size, fNlogN(0.43), 'O(logM)')
-	runSubTest(test2, size, fNlogN(0.58), 'O(logM)')
+	runSubTest(test1, size, fNlogN(0.43), 'O(logM)') # seems to be logM ?
+	runSubTest(test2, size, fNlogN(0.58), 'O(logM)') # seems to be logM too?
 
 #-------------------------- Testing Part ----------------------------
 import importlib
