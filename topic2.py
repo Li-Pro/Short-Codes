@@ -10,24 +10,16 @@ In the analyses:
 import math
 import random
 
-def countMax(seq):
-	# Count the max (not average nor expected sum) collisions.
-	mxn = 0
-	for x in seq:
-		mxn = max(mxn, seq[x])
-	
-	return mxn
-
 def countCollid(N, M):
-	cnt = {}
+	# Count the max (not average nor expected sum) collisions.
+	cnt = [0] * N
+	mxn = 0
 	for i in range(M):
 		x = random.randrange(N)
-		if not x in cnt:
-			cnt[x] = 0
-		
 		cnt[x] += 1
+		mxn = max(mxn, cnt[x])
 	
-	return countMax(cnt)
+	return mxn
 
 def test1(size=1000):
 	""" Fixed N, with M growing. """
@@ -100,9 +92,19 @@ else:
 		
 		glob.update({name: getattr(currMod, name) for name in __all__})
 	
+	def testAvg(func, count=100):
+		def testFunc(i):
+			sumt = 0
+			for t in range(count):
+				sumt += func(i)
+			
+			return sumt / count
+		
+		return testFunc
+	
 	## plotGraph plotting arguments ##
-	pltTest1 = dict(func=lambda i: sum(countCollid(1000, i) for j in range(100)) / 100, domain=(1, 1000), precision=10)
-	pltTest2 = dict(func=lambda i: sum(countCollid(i, i) for j in range(100)) / 100, domain=(1, 1000), precision=10)
+	pltTest1 = dict(func=testAvg(lambda i: countCollid(1000, i)), domain=(1, 1000), precision=10)
+	pltTest2 = dict(func=testAvg(lambda i: countCollid(i, i)), domain=(1, 1000), precision=10)
 	
 	__all__ = ['reload', 'runHook', 'pltTest1', 'pltTest2']
 
