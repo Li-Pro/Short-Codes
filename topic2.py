@@ -11,7 +11,7 @@ import math
 import random
 
 def countMax(seq):
-	""" Count the max (not average nor expected sum) collisions. """
+	# Count the max (not average nor expected sum) collisions.
 	mxn = 0
 	for x in seq:
 		mxn = max(mxn, seq[x])
@@ -77,15 +77,20 @@ if __name__ == "__main__":
 else:
 	### MODULE IMPORTED ###
 	def runHook(pathspec='Locals.plotGraph'):
+		"""
+		Run the external plotGraph program.
+		Usage:
+			runHook(path_to_plotGraph_folder)
+		"""
 		plotGraph = __import__(pathspec, fromlist=['plotGraph']).plotGraph
-		plotGraph.startPlot()
+		plotGraph.startPlot({**globals(), **locals()})
 	
 	def reload(glob=None):
 		"""
 		Reload this module (at runtime).
-			reload(globals())
-			OR
+		Usage:
 			reload() if called from the __main__ module.
+			reload(globals()) otherwise.
 		"""
 		if glob == None:
 			glob = vars(sys.modules['__main__'])
@@ -96,8 +101,8 @@ else:
 		glob.update({name: getattr(currMod, name) for name in __all__})
 	
 	## plotGraph plotting arguments ##
-	pltTest1 = dict(func=lambda i: sum(countCollid(1000, i) for j in range(10)) / 10, domain=(1, 1000), precision=10)
-	pltTest2 = dict(func=lambda i: sum(countCollid(i, i) for j in range(10)) / 10, domain=(1, 1000), precision=10)
+	pltTest1 = dict(func=lambda i: sum(countCollid(1000, i) for j in range(100)) / 100, domain=(1, 1000), precision=10)
+	pltTest2 = dict(func=lambda i: sum(countCollid(i, i) for j in range(100)) / 100, domain=(1, 1000), precision=10)
 	
 	__all__ = ['reload', 'runHook', 'pltTest1', 'pltTest2']
 
