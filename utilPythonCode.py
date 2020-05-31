@@ -30,6 +30,7 @@ _clear_doc = \
 """
 clear() clears the screen (with 100 empty lines).
 """.strip()
+
 clear = _namedFunction(lambda: print('\n'*100), 'Type clear() to clean the screen.').setHelpDoc(_clear_doc)
 
 
