@@ -31,11 +31,11 @@ def test2(size=1000):
 
 def runSubTest(testfunc, size, estf=lambda x: x+3, estlabel='O(N)'):
 	T = testfunc(size)
-	avgt, estt = 0, 0
+	avgt, estt = 1, 1
 	for i in range(1, size):
 		x = T[i-1]
-		avgt += x / size
-		estt += x / estf(i) / size
+		avgt *= (x ** (1/size))
+		estt *= ((x / estf(i)) ** (1/size))
 	
 	print('Result: average({tfunc}) = {avg:.3f}, average({tfunc}/{estname}) = {est:.3f}'
 		.format(tfunc=testfunc.__name__, avg=avgt, est=estt, estname=estlabel))
@@ -43,8 +43,8 @@ def runSubTest(testfunc, size, estf=lambda x: x+3, estlabel='O(N)'):
 def runTest():
 	def factorSameOrderOfMagnitude(func):
 		def wrapFunc(factor=1.0):
-			assert(0.1 <= factor <= 10.0) # In same order of magnitude (base 10)
-			return func()
+			assert(0.1 <= factor <= 10.0) # One order of magnitude (base 10)
+			return func(factor)
 		
 		return wrapFunc
 	
@@ -57,8 +57,8 @@ def runTest():
 		return (lambda i: (i+1) * factor)
 	
 	size = 1000
-	runSubTest(test1, size, fNlogN(0.43), 'O(logM)') # seems to be logM ?
-	runSubTest(test2, size, fNlogN(0.58), 'O(logM)') # seems to be logM too?
+	runSubTest(test1, size, fNlogN(0.426), 'O(logM)') # seems to be logM ?
+	runSubTest(test2, size, fNlogN(0.577), 'O(logM)') # seems to be logM too?
 
 #-------------------------- Testing Part ----------------------------
 import importlib
