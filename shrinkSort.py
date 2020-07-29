@@ -1,9 +1,13 @@
+"""
+A simple O(NlogN) sorting algorithm.
+"""
+
 import random
 import time
 
 def merge(ax, ay):
 	i, j, k, nx, ny = 0, 0, 0, len(ax), len(ay)
-	az = [None]*(nx+ny)
+	az = [None]*(nx + ny)
 	
 	def addi():
 		nonlocal ax, az, i, k
@@ -15,10 +19,10 @@ def merge(ax, ay):
 		az[k] = ay[j]
 		j, k = j+1, k+1
 	
-	while i<nx or j<ny:
-		if not i<nx:
+	while (i < nx) or (j < ny):
+		if (not i < nx):
 			addj()
-		elif not j<ny:
+		elif (not j < ny):
 			addi()
 		else:
 			if ax[i] < ay[j]:
@@ -28,16 +32,16 @@ def merge(ax, ay):
 	
 	return az
 
-def countAscend(arr, i):
+def nextDesc(arr, i):
 	N = len(arr)
-	cnt = 1
-	while i+cnt < N:
-		if arr[i+cnt] >= arr[i+cnt-1]:
-			cnt += 1
+	j = i+1
+	while j < N:
+		if arr[j] >= arr[j-1]:
+			j += 1
 		else:
 			break
 	
-	return cnt
+	return j
 
 def isSorted(arr):
 	for i in range(1, len(arr)):
@@ -47,40 +51,40 @@ def isSorted(arr):
 	return True
 
 def sort(arr):
-	# print('#', arr)
-	# print('#')
+	N = len(arr)
 	
-	i, N = 0, len(arr)
-	while i < N:
-		a = countAscend(arr, i)
-		if a == N-i:
+	while True:
+		i = 0
+		while i < N:
+			j = nextDesc(arr, i)
+			if j == N:
+				break
+			
+			k = nextDesc(arr, j)
+			
+			arr[i: k] = merge(arr[i: j], arr[j: k])
+			i = k
+		
+		if isSorted(arr):
 			break
-		
-		b = countAscend(arr, i+a)
-		
-		arr[i: i+a+b] = merge(arr[i: i+a], arr[i+a: i+a+b])
-		i = i+a+b
 	
-	if not isSorted(arr):
-		return sort(arr)
-	else:
-		return arr
+	return arr
 
-def check(arr, answer):
-	return arr == answer
+def check(result, arr):
+	return result == sorted(arr)
 
 def main():
-	N = 10**5 # input()
+	N = 10**5
 	C = 10**9
 	
 	arr = [random.randrange(C) for i in range(N)]
-	answer = sorted(arr)
+	arrTest = [arr[i] for i in range(N)]
 	
 	sttime = time.perf_counter()
-	sort(arr)
+	sort(arrTest)
 	edtime = time.perf_counter()
 	
-	print('Check: {}.'.format('passed' if check(arr, answer) else 'failed'))
+	print('Check: {}.'.format('passed' if check(arrTest, arr) else 'failed'))
 	print('Elapsed time: {:.3f} seconds'.format(edtime - sttime))
 
 main()
