@@ -87,7 +87,7 @@ def sample(seq, k):
 	
 	Complexity:
 		O(N (logN-log(N-k))) where N = len(seq), with high probability.
-		Close to O(k) for relative small k.
+		Close to O(k) for relatively small k.
 	"""
 	picked = set()
 	
@@ -176,7 +176,8 @@ def choice(arr, weight):
 import code as _libcode
 
 if __name__ == "__main__":
-	console = _libcode.InteractiveConsole({**globals(), **locals()})
+	console = _libcode.InteractiveConsole()
+	console.push('from algoRandom import *')
 	console.interact()
 
 #------------------------------------------------
