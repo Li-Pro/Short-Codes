@@ -9,26 +9,13 @@ def merge(ax, ay):
 	i, j, k, nx, ny = 0, 0, 0, len(ax), len(ay)
 	az = [None]*(nx + ny)
 	
-	def addi():
-		nonlocal ax, az, i, k
-		az[k] = ax[i]
-		i, k = i+1, k+1
-	
-	def addj():
-		nonlocal ay, az, j, k
-		az[k] = ay[j]
-		j, k = j+1, k+1
-	
 	while (i < nx) or (j < ny):
-		if (not i < nx):
-			addj()
-		elif (not j < ny):
-			addi()
+		if (not j < ny) or (i < nx and ax[i] < ay[j]):
+			az[k] = ax[i]
+			i, k = i+1, k+1
 		else:
-			if ax[i] < ay[j]:
-				addi()
-			else:
-				addj()
+			az[k] = ay[j]
+			j, k = j+1, k+1
 	
 	return az
 
@@ -42,13 +29,6 @@ def nextDesc(arr, i):
 			break
 	
 	return j
-
-def isSorted(arr):
-	for i in range(1, len(arr)):
-		if arr[i] < arr[i-1]:
-			return False
-	
-	return True
 
 def sort(arr):
 	N = len(arr)
@@ -65,7 +45,7 @@ def sort(arr):
 			arr[i: k] = merge(arr[i: j], arr[j: k])
 			i = k
 		
-		if isSorted(arr):
+		if i == 0:
 			break
 	
 	return arr
